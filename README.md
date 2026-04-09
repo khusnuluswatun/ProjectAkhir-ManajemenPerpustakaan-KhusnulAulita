@@ -6,9 +6,8 @@ Project Akhir Praktikum Algoritma Pemrograman \& Struktur Data
 
 Dibuat oleh:
 
-Khusnul Uswatun Khasanah (124250052)
-
-Aulita Fanisa Ardila  (124250067)
+* Khusnul Uswatun Khasanah (124250052)
+* Aulita Fanisa Ardila  (124250067)
 
 
 
@@ -18,7 +17,7 @@ Program ini dibuat untuk mempermudah pengelolaan data buku di perpustakaan, deng
 
 
 
-Fitur/menu: 
+Fitur/menu:
 
 1. Tambah Buku (Insert Last)
 2. Tampilkan Semua (Traversal)
@@ -38,6 +37,4 @@ Logic Dasar:
 * Struktur Data: Menggunakan struct dengan pointer kiri dan kanan.
 * Sistem File: Data disimpan permanen ke dalam file .txt. Saat program dibuka, data otomatis di-load kembali ke RAM (Linked List).
 * Kelebihan: Mendukung judul/nama dengan spasi dan pengurutan data yang fleksibel.
-
-
 
