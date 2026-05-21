@@ -1,6 +1,9 @@
 #include <iostream>
 #include <cstdio>
 #include <iomanip>
+#include <limits>
+#include <cctype>
+#include <cstdlib>
 using namespace std;
 
 string keyUnm = "admin";
@@ -35,6 +38,34 @@ ListPeminjaman dataPinjam;
 //bag aulita : sorting, editBuku, hapusBuku, pinjam, kembalikan
 void loadDataFilePerpustakaan(), menu(), tambahBuku(), tampilkanBuku(), searching(), sorting(), editBuku(), hapusBuku(), loadDataFilePeminjam(), pinjam(), tampilkanPeminjaman(), kembalikan(), simpanPeminjaman(), sortPeminjaman(), simpanFile(), simpanSemua(), keluar(), bubbleSort(int pilih), selectionSort(int pilih), swapData(Buku *a, Buku *b);
 
+int inputAngka(string pesan, int min = 0){
+    int angka;
+    while(true){
+        cout << pesan;
+        if(cin >> angka && angka >= min){
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            return angka;
+        }
+        cout << "Input harus angka dan minimal " << min << "!\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+}
+
+char inputYN(string pesan){
+    char pilih;
+    while(true){
+        cout << pesan;
+        cin >> pilih;
+        pilih = tolower(pilih);
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        if(pilih == 'y' || pilih == 'n'){
+            return pilih;
+        }
+        cout << "Input hanya boleh y atau n!\n";
+    }
+}
+
 int main(){
 	cout << "=======================================================" << endl;
 	cout << "               SISTEM MANAJEMEN PERPUSTAKAAN           " << endl;
@@ -42,6 +73,7 @@ int main(){
 	cout << "\nSilahkan login terlebih dahulu\n";
 	string unm, pwd;
 	bool check = false;
+	int p = 0;
 	while(!check){
 		cout << "Username : ";
 		cin >> unm;
@@ -49,7 +81,11 @@ int main(){
 		cin >> pwd;	
 		
 		if(unm != keyUnm || pwd != keyPwd){
-			cout << "Username atau password salah, silahkan coba lagi" << endl;
+			p++;
+			cout << "Username atau password salah!\n";
+			if(p >= 5){
+				cout << "Anda gagal login 5 kali.\n"; return 0;
+			}
 		}else{
 			check = true;
 		}
@@ -64,8 +100,7 @@ int main(){
 	do{
 		system("cls");
 		menu();
-		cout << "Pilih menu: ";
-		cin >> pilihan;
+		pilihan = inputAngka("Pilih menu: ", 0);
 		cout << endl;
 
 		switch(pilihan){
@@ -107,9 +142,8 @@ int main(){
 			break;
 		}
 		
-		cout << "\nLanjut menu?(y/n): ";
-		cin >> lanjut;
-	}while(lanjut == 'y' && pilihan != 0);
+		lanjut = inputYN("\nLanjut menu? (y/n): ");
+	}while((lanjut == 'y' || lanjut == 'Y') && pilihan != 0);
 	if(lanjut == 'n') keluar();
 }
 
@@ -167,23 +201,53 @@ void menu(){
 
 void tambahBuku(){
 	int brp;
-	cout << "Mau input berapa buku? ";
-	cin >> brp;
+	brp = inputAngka("Mau input berapa buku? ", 1);
 	
 	for(int i=0;i<brp;i++){
 		Buku *baru = new Buku;
 		cout << "-----------\nBuku ke-" << (i+1) << endl;
-		cout << "Kode: ";
+		cout << "Kode    : ";
 		cin >> baru->kode;
-		cout << "Judul: ";
-		cin.ignore();
+		cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		if(baru->kode.empty()){
+			cout << "Kode tidak boleh kosong!\n";
+			delete baru;
+			i--; continue;
+		}
+
+		Buku *cek = bukubuku.head;
+		bool duplikat = false;
+		while(cek != NULL){
+			if(cek->kode == baru->kode){
+				duplikat = true;
+				break;
+			}
+			cek = cek->kiri;
+		}
+
+		if(duplikat){
+			cout << "Kode buku sudah ada!\n";
+			delete baru;
+			i--; continue;
+		}
+
+		cout << "Judul   : ";
     	getline(cin, baru->judul);
-		cout << "Penulis: ";
+		if(baru->judul.empty()){
+			cout << "Judul tidak boleh kosong!\n";
+			delete baru;
+			i--; continue;
+		}
+		cout << "Penulis : ";
     	getline(cin, baru->penulis);
-		cout << "Tahun: ";
-		cin >> baru->tahun;
-		cout << "Stok: ";
-		cin >> baru->stok;
+		if(baru->penulis.empty()){
+			cout << "Penulis tidak boleh kosong!\n";
+			delete baru;
+			i--; continue;
+		}
+
+		baru->tahun = inputAngka("Tahun   : ", 0);
+		baru->stok = inputAngka("Stok    : ", 0);
 		
 		baru->kiri = NULL;
 		baru->kanan = NULL;
@@ -215,7 +279,6 @@ void tampilkanBuku(){
 		bantu = bantu->kiri;
 	}
 	cout << "-------------------------------------------------------" << endl;
-	saveGak = true;
 }
 
 void searching(){
@@ -224,8 +287,12 @@ void searching(){
 	}
 	string cari;
 	cout << "Kode atau judul buku yang dicari: ";
-	cin.ignore();
 	getline(cin, cari);
+
+	if(cari.empty()){
+		cout << "Input pencarian tidak boleh kosong!\n";
+		return;
+	}
 	
 	Buku *bantu = bukubuku.head;
 	bool ketemu = false;
@@ -250,7 +317,6 @@ void searching(){
 }
 
 //semua perintah ini ambil data sama edit data linked list / bukubuku yaa
-// saveGak itu nanti biar kalo mau keluar & belum save ke file jadi muncul pertanyaan mau save gak
 void swapData(Buku *a, Buku *b){
     swap(a->kode, b->kode);
     swap(a->judul, b->judul);
@@ -260,7 +326,9 @@ void swapData(Buku *a, Buku *b){
 }
 
 void sorting(){
-	//ini dibuat ada option sorting ascending atau desc yaa
+	if(bukubuku.head == NULL){
+		cout << "Data buku kosong" << endl; return;
+	}
 	int pilih, urutan; 
 	cout << "+------------------------------------+" << endl;
 	cout << "|               SORTING              |" << endl;
@@ -270,7 +338,13 @@ void sorting(){
 	cout << " 2. Judul" << endl;
 	cout << " +-----------------------------------+" << endl;
 	cout << "Pilih: ";
-	cin >> pilih;
+
+	pilih = inputAngka("Pilih: ", 1);
+	while(pilih > 2){
+		cout << "Pilihan hanya 1 atau 2!\n";
+		pilih = inputAngka("Pilih: ", 1);
+	}
+
 	cout << "\n+------------------------------------+" << endl;
 	cout << "|               SORTING              |" << endl;
 	cout << "+------------------------------------+" << endl;
@@ -278,8 +352,11 @@ void sorting(){
 	cout << " 1. Ascending" << endl;
 	cout << " 2. Descending" << endl;
 	cout << "+------------------------------------+" << endl;
-	cout << "Pilih: ";
-	cin >> urutan;
+	urutan = inputAngka("Pilih: ", 1);
+	while(urutan > 2){
+		cout << "Pilihan hanya 1 atau 2!\n";
+		urutan = inputAngka("Pilih: ", 1);
+	}
 	
 	if (urutan == 1) {
 		bubbleSort(pilih);
@@ -290,6 +367,9 @@ void sorting(){
 	} else {
 		cout << "Pilihan tidak tersedia." << endl;
 		return;
+	}
+	if(urutan == 1 || urutan == 2){
+		tampilkanBuku();
 	}
 }
 
@@ -351,7 +431,6 @@ void editBuku(){
 	}
 	string cari;
 	cout << "Kode atau judul buku yang akan diedit: ";
-	cin.ignore();
 	getline(cin, cari);
 	
 	Buku *bantu = bukubuku.head;
@@ -372,10 +451,13 @@ void editBuku(){
 			cout << "3.Nama Penulis" << endl;
 			cout << "4.Stok" << endl;
 			cout << "-------------------------------------------------------" << endl;
-			cout << "Pilihan: ";
-			cin >> pilih;
-			cin.ignore();
-			
+
+			pilih = inputAngka("Pilihan: ", 1);
+			while(pilih > 4){
+				cout << "Pilihan tidak tersedia!\n";
+				pilih = inputAngka("Pilihan: ", 1);
+			}
+
 			switch(pilih){
 				case 1: cout << "Kode baru: ";
 						getline(cin, bantu->kode);break;
@@ -383,8 +465,9 @@ void editBuku(){
 						getline(cin, bantu->judul);break;
 				case 3: cout << "Penulis: ";
 						getline(cin, bantu->penulis);break;
-				case 4: cout << "Stok baru: ";
-						cin >> bantu->stok; break;
+				case 4: 
+					bantu->stok = inputAngka("Stok baru: ", 0);
+					break;
 				default: cout << "Pilihan tidak tersedia" << endl;
 				return;
 			}
@@ -407,7 +490,6 @@ void hapusBuku(){
 	}
 	string cari;
 	cout << "Kode atau judul buku yang akan dihapus: ";
-	cin.ignore();
 	getline(cin, cari);
 	
 	Buku *hapus = bukubuku.head;
@@ -427,9 +509,8 @@ void hapusBuku(){
 				cek =cek ->next;
 			}
 			char konfirmasi;
-			cout << "Yakin ingin menghapus buku '" << hapus->judul << "'? (y/n): ";
-			cin >> konfirmasi;
-			if(konfirmasi != 'y'&& konfirmasi != 'Y'){
+			konfirmasi = inputYN("Yakin ingin menghapus buku '" + hapus->judul + "'? (y/n): ");
+			if(konfirmasi == 'n'){
 				cout << "Penghapusan dibatalkan." << endl;
 				return;
 			}
@@ -482,9 +563,10 @@ void pinjam(){
 		cout << "Data buku kosong" << endl;
 		return;
 	}
+	tampilkanBuku();
+
 	string cari;
 	cout << "Kode atau judul buku yang ingin dipinjam: ";
-	cin.ignore();
 	getline(cin, cari);
 	
 	Buku *bantu = bukubuku.head;
@@ -496,6 +578,13 @@ void pinjam(){
 				cout << "\n<<-------- INPUT DATA PEMINJAMAN BUKU -------->>\n";
 				cout << " Nama Peminjam              : ";
 				getline(cin, baru->nama);
+
+				if(baru->nama.empty()){
+					cout << "Nama peminjam tidak boleh kosong!\n";
+					delete baru;
+					bantu->stok++; return;
+				}
+
 				cout << " Tanggal Pinjam (yyyy-mm-dd): ";
 				getline(cin, baru->tanggal);
 				baru->judul = bantu->judul;
@@ -570,7 +659,6 @@ void kembalikan(){
 	string judul, nama;
 	cout << "\n<<-------- INPUT DATA PENGEMBALIAN BUKU -------->>\n";
 	cout << "Masukkan nama peminjam : ";
-	cin.ignore();
 	getline(cin, nama);
 	cout << "Masukkan judul buku    : ";
 	getline(cin, judul);
@@ -653,9 +741,9 @@ void simpanSemua(){
 	
 	if(dataPinjam.head != NULL){
 		simpanPeminjaman();
-		cout << "\nBerhasil disimpan difile dataPerpustakaan.txt dan dataPeminjaman.txt"<< endl;
+		cout << "\nBerhasil disimpan di file dataPerpustakaan.txt dan dataPeminjaman.txt"<< endl;
 	}else{
-		cout << "\nData buku berhasil disimpan difile dataPerpustakaan.txt (belum ada peminjaman)." << endl;
+		cout << "\nData buku berhasil disimpan di file dataPerpustakaan.txt (belum ada peminjaman)." << endl;
 	}	
 	saveGak = false;	
 }	
@@ -663,8 +751,7 @@ void simpanSemua(){
 void keluar(){
 	char qsave;
 	if(saveGak){
-		cout << "Perubahan belum disimpan. Apakah akan Anda simpan? (y/n) ";
-		cin >> qsave;
+		qsave = inputYN("Perubahan belum disimpan. Apakah akan Anda simpan? (y/n): ");
 		if(qsave == 'y'){
 			simpanSemua();
 		}
