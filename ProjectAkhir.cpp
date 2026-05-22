@@ -337,7 +337,6 @@ void sorting(){
 	cout << " 1. Kode" << endl;
 	cout << " 2. Judul" << endl;
 	cout << " +-----------------------------------+" << endl;
-	cout << "Pilih: ";
 
 	pilih = inputAngka("Pilih: ", 1);
 	while(pilih > 2){
@@ -509,7 +508,7 @@ void hapusBuku(){
 				cek =cek ->next;
 			}
 			char konfirmasi;
-			konfirmasi = inputYN("Yakin ingin menghapus buku '" + hapus->judul + "'? (y/n): ");
+			konfirmasi = inputYN("\nYakin ingin menghapus buku '" + hapus->judul + "'? (y/n): ");
 			if(konfirmasi == 'n'){
 				cout << "Penghapusan dibatalkan." << endl;
 				return;
